@@ -1,0 +1,23 @@
+{
+  "name": "@queue/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "module": "src/index.ts",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run dist/index.js",
+    "build": "bun build src/index.ts --outdir=dist --target bun --minify"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.3.3",
+    "@elysiajs/openapi": "^1.3.12",
+    "@elysiajs/static": "^1.3.0",
+    "@queue/lib": "workspace:*",
+    "dayjs": "catalog:",
+    "elysia": "latest",
+    "picocolors": "^1.1.1",
+    "systray": "^1.0.5"
+  }
+}

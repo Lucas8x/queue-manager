@@ -1,0 +1,46 @@
+{
+  "name": "queue-manager",
+  "private": true,
+  "author": "Lucas Emanuel <lucasemanuel8x@gmail.com>",
+  "scripts": {
+    "prebuild": "bun run --filter '@queue/lib' build",
+    "build": "bun run --filter '!@queue/lib' build",
+    "dev:back": "bun run ./packages/backend/src/index.ts",
+    "dev:front": "bun run --filter '@queue/dashboard' dev",
+    "build:front": "bun run --filter '@queue/dashboard' build",
+    "build:back": "bun run --filter '@queue/backend' build"
+  },
+  "workspaces": ["packages/*"],
+  "homepage": "https://github.com/Lucas8x/queue-manager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lucas8x/queue-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lucas8x/queue-manager/issues"
+  },
+  "catalog": {
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.5",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "packageManager": "bun@1.2.19",
+  "engines": {
+    "bun": ">=1.2.19"
+  },
+  "keywords": [
+    "queue",
+    "task",
+    "manager",
+    "dashboard",
+    "job",
+    "lib",
+    "typescript",
+    "bun"
+  ]
+}
