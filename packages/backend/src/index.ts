@@ -10,6 +10,9 @@ const dashboardUrl = `http://${app.server?.hostname}:${app.server?.port}`;
 
 console.log(`[🦊] Dashboard is running at ${pc.cyan(dashboardUrl)}`);
 
+await queue.init();
+queue.startScheduler();
+
 const shortcuts = {
   d: {
     description: 'open dashboard',

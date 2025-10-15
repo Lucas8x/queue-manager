@@ -34,12 +34,4 @@ function getQueue(): TaskQueue {
 
 const queue = getQueue();
 
-await queue.init();
-
-queue.startScheduler();
-
-/* if (queue.getQueue().length === 0) {
-  queue.addTask([...Array(20)].map(() => 0));
-} */
-
 export { queue };

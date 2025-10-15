@@ -1,8 +1,8 @@
 {
   "name": "@queue/lib",
-  "author": "Lucas Emanuel <lucasemanuel8x@gmail.com>",
-  "version": "0.1.0",
   "private": true,
+  "version": "0.1.0",
+  "author": "Lucas Emanuel <lucasemanuel8x@gmail.com>",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,8 @@
     "nanoid": "^5.1.5"
   },
   "devDependencies": {
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "@types/bun": "catalog:"
   },
   "peerDependencies": {
     "typescript": "^5"

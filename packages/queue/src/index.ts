@@ -21,8 +21,8 @@ export class TaskQueue {
   private tasksFile: Bun.BunFile;
   private logFile: string;
 
-  private onProcessTask: IOnProcessTask;
-  private onAllConcluded: IOnAllConcluded;
+  public onProcessTask: IOnProcessTask;
+  public onAllConcluded: IOnAllConcluded;
   public generateTaskIdFn?: (data: unknown) => string;
 
   constructor({
@@ -188,7 +188,7 @@ export class TaskQueue {
     }
 
     this.log('All tasks concluded.');
-    this.onAllConcluded();
+    this.onAllConcluded?.();
     return true;
   }
 
@@ -237,6 +237,10 @@ export class TaskQueue {
         try {
           task.status = 'running';
           this.log(`[${task.id}] Task started.`);
+
+          if (!this.onProcessTask) {
+            throw new Error('No onProcessTask handler defined.');
+          }
 
           const success = await this.onProcessTask(task);
 
@@ -309,3 +313,5 @@ export class TaskQueue {
     return this.running;
   }
 }
+
+export * from './types';
