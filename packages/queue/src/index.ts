@@ -69,6 +69,24 @@ export class TaskQueue {
   async loadTasks(): Promise<void> {
     if (await this.tasksFile.exists()) {
       this.queue = await this.tasksFile.json();
+
+      let normalizedCount = 0;
+
+      for (const task of this.queue) {
+        if (task && task.status === 'running') {
+          task.status = 'pending';
+          task.scheduledAt = dayjs();
+          task.finishedAt = null;
+          normalizedCount++;
+        }
+      }
+
+      if (normalizedCount > 0) {
+        await this.log(
+          `Normalized ${normalizedCount} 'running' tasks to 'pending'.`,
+        );
+        await this.saveTasks();
+      }
     }
   }
 
