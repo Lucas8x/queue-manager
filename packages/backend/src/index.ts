@@ -13,6 +13,12 @@ console.log(`[🦊] Dashboard is running at ${pc.cyan(dashboardUrl)}`);
 await queue.init();
 queue.startScheduler();
 
+async function handleShutdown(signal: string) {
+  console.log(`[🦊] Exiting gracefully... [${signal}]`);
+  await queue.saveTasks();
+  process.exit(0);
+}
+
 const shortcuts = {
   d: {
     description: 'open dashboard',
@@ -45,8 +51,7 @@ const shortcuts = {
   q: {
     description: 'quit',
     action: () => {
-      console.log('[🦊] Exiting gracefully...');
-      process.exit(0);
+      handleShutdown('SIGINT');
     },
   },
 } as const;
@@ -78,6 +83,9 @@ process.stdin.on('keypress', (_, key) => {
     shortcuts.q.action();
   }
 });
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('beforeExit', () => handleShutdown('beforeExit'));
 
 for (const [key, value] of Object.entries(shortcuts)) {
   console.log(
