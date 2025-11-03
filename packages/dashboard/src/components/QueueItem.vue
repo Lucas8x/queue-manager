@@ -29,7 +29,7 @@ function handleCopy() {
 
 <template>
   <Card
-    class="rounded-lg border bg-card text-card-foreground shadow-2xs hover:shadow-md transition-shadow gap-2"
+    class="rounded-lg border bg-card text-card-foreground shadow-2xs hover:shadow-md transition-shadow gap-2 mx-2 "
   >
     <CardHeader class="flex flex-col px-6">
       <div class="flex items-center justify-between w-full">
