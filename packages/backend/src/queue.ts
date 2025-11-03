@@ -10,12 +10,12 @@ function getQueue(): TaskQueue {
   if (!queueInstance) {
     queueInstance = new TaskQueue({
       storageDir: queueStorage,
-      delayAfterBatchMs: () => randomInt(30, 60 + 1) * 1000, // 30~60 seconds
+      delayAfterBatchMs: () => randomInt(30, 60 + 1) * 1000, // 30 ~ 60 seconds
       schedulerIntervalMs: 10 * 1000, // 10 seconds
       onProcessTask: async (task) => {
         // Implement your task processing logic here
 
-        // fake processing delay
+        // fake processing delay 5 ~ 15 seconds
         await new Promise((r) => setTimeout(r, randomInt(5000, 15000 + 1)));
 
         const randomSuccess = Math.random() < 0.4;
@@ -23,7 +23,7 @@ function getQueue(): TaskQueue {
         return randomSuccess;
       },
       onAllConcluded: () => {
-        console.log('[🦊] Exiting gracefully...');
+        console.log('[🦊] [Queue] All done, exiting gracefully...');
         process.exit(0);
       },
     });

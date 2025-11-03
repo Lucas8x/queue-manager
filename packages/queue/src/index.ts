@@ -25,6 +25,8 @@ export class TaskQueue {
   public onAllConcluded: IOnAllConcluded;
   public generateTaskIdFn?: (data: unknown) => string;
 
+  private writeQueue = Promise.resolve();
+
   constructor({
     storageDir,
     onProcessTask,
@@ -103,11 +105,8 @@ export class TaskQueue {
    * @param {string} message - The message to log.
    */
   private async log(message: string): Promise<void> {
-    const line =
-      `[${dayjs().format('DD/MM HH:mm:ss')}] [Queue] ${message}\n`.trim();
-
-    console.log(line);
-
+    const line = `[${dayjs().format('DD/MM HH:mm:ss')}] [Queue] ${message}\n`;
+    console.log(line.trim());
     await appendFile(this.logFile, line, 'utf8');
   }
 
@@ -115,17 +114,18 @@ export class TaskQueue {
    * Saves the current queue state to the tasks.json file.
    */
   async saveTasks(): Promise<void> {
-    try {
-      this.log('Saving tasks to storage...');
-      const data = JSON.stringify(this.queue, null, 2);
-      await this.tasksFile.write(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        this.log(`Error on tasks save: ${error.message}`);
-        return;
+    this.writeQueue = this.writeQueue.then(async () => {
+      try {
+        this.log('Saving tasks to storage...');
+        const data = JSON.stringify(this.queue, null, 2);
+        await this.tasksFile.write(data);
+      } catch (error) {
+        this.log(
+          `Error on tasks save: ${error instanceof Error ? error.message : error}`,
+        );
       }
-      this.log(`Error on tasks save: ${error}`);
-    }
+    });
+    return this.writeQueue;
   }
 
   /**
@@ -277,7 +277,7 @@ export class TaskQueue {
       }),
     );
 
-    this.saveTasks();
+    await this.saveTasks();
     return true;
   }
 
