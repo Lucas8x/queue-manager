@@ -1,6 +1,10 @@
 import { randomInt } from 'node:crypto';
 import path from 'node:path';
 import { TaskQueue } from '@queue/lib';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 const queueStorage = path.join(import.meta.dir, '..', 'output', 'queue');
 
@@ -26,6 +30,7 @@ function getQueue(): TaskQueue {
         console.log('[🦊] [Queue] All done, exiting gracefully...');
         process.exit(0);
       },
+      dayjs: () => dayjs().utc(true),
     });
   }
 

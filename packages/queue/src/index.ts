@@ -1,7 +1,8 @@
 import { appendFile, exists, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import dayjsBase, { type Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { nanoid } from 'nanoid';
-import { dayjs } from './dayjs';
 import type {
   IOnAllConcluded,
   IOnProcessTask,
@@ -20,6 +21,7 @@ export class TaskQueue {
   private storageDir: string;
   private tasksFile: Bun.BunFile;
   private logFile: string;
+  private dayjs: () => Dayjs;
 
   public onProcessTask: IOnProcessTask;
   public onAllConcluded: IOnAllConcluded;
@@ -34,7 +36,8 @@ export class TaskQueue {
     concurrency = 2,
     delayAfterBatchMs = 0,
     schedulerIntervalMs = 1000, // 1 seconds
-    generateTaskIdFn = undefined,
+    generateTaskIdFn,
+    dayjs,
   }: ITaskQueueOptions) {
     this.storageDir = storageDir;
     this.tasksFile = Bun.file(path.join(storageDir, 'tasks.json'));
@@ -48,6 +51,13 @@ export class TaskQueue {
     this.schedulerIntervalMs = schedulerIntervalMs;
 
     this.generateTaskIdFn = generateTaskIdFn;
+
+    if (!dayjs) {
+      dayjsBase.extend(utc);
+      this.dayjs = dayjsBase.utc;
+    } else {
+      this.dayjs = dayjs;
+    }
   }
 
   /**
@@ -77,7 +87,7 @@ export class TaskQueue {
       for (const task of this.queue) {
         if (task && task.status === 'running') {
           task.status = 'pending';
-          task.scheduledAt = dayjs();
+          task.scheduledAt = this.dayjs();
           task.finishedAt = null;
           normalizedCount++;
         }
@@ -105,7 +115,7 @@ export class TaskQueue {
    * @param {string} message - The message to log.
    */
   private async log(message: string): Promise<void> {
-    const line = `[${dayjs().format('DD/MM HH:mm:ss')}] [Queue] ${message}\n`;
+    const line = `[${this.dayjs().format('DD/MM HH:mm:ss')}] [Queue] ${message}\n`;
     console.log(line.trim());
     await appendFile(this.logFile, line, 'utf8');
   }
@@ -128,6 +138,32 @@ export class TaskQueue {
     return this.writeQueue;
   }
 
+  private generateTaskID(task: unknown): string {
+    let id: string | undefined;
+
+    if (typeof task === 'object' && task !== null && 'id' in task) {
+      const newID = (task as { id?: unknown }).id;
+
+      if (typeof newID === 'string' && newID.length > 0) {
+        id = newID;
+      }
+    }
+
+    if (!id && this.generateTaskIdFn) {
+      const newID = this.generateTaskIdFn(task);
+
+      if (typeof newID === 'string' && newID.length > 0) {
+        id = newID;
+      }
+    }
+
+    if (!id) {
+      id = nanoid();
+    }
+
+    return id;
+  }
+
   /**
    * Adds one or more tasks to the queue.
    * IDs are generated automatically if not provided.
@@ -137,18 +173,13 @@ export class TaskQueue {
     const items: unknown[] = Array.isArray(tasks) ? tasks : [tasks];
 
     for (const taskItem of items) {
-      const id =
-        (typeof taskItem === 'object' && taskItem !== null && 'id' in taskItem
-          ? (taskItem as { id?: string }).id
-          : undefined) ||
-        this.generateTaskIdFn?.(taskItem) ||
-        nanoid();
+      const id = this.generateTaskID(taskItem);
 
       this.queue.push({
         id,
         data: taskItem,
         status: 'pending',
-        scheduledAt: dayjs(),
+        scheduledAt: this.dayjs(),
         finishedAt: null,
       });
 
@@ -170,7 +201,7 @@ export class TaskQueue {
       }
 
       task.status = 'pending';
-      task.scheduledAt = dayjs();
+      task.scheduledAt = this.dayjs();
       task.finishedAt = null;
 
       count++;
@@ -263,7 +294,7 @@ export class TaskQueue {
           const success = await this.onProcessTask(task);
 
           task.status = success ? 'completed' : 'error';
-          task.finishedAt = dayjs();
+          task.finishedAt = this.dayjs();
 
           this.log(`[${task.id}] Task completed - Status: ${task.status}`);
         } catch (err) {

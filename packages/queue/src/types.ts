@@ -21,4 +21,5 @@ export type ITaskQueueOptions = {
   delayAfterBatchMs?: number | (() => number);
   schedulerIntervalMs?: number;
   generateTaskIdFn?: (data: unknown) => string;
+  dayjs?: () => Dayjs;
 };
