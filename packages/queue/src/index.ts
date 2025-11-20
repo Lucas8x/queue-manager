@@ -1,13 +1,13 @@
-import { appendFile, exists, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import dayjsBase, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { nanoid } from 'nanoid';
 import type {
-  IOnAllConcluded,
-  IOnProcessTask,
-  IQueueItem,
-  ITaskQueueOptions,
+  Logger,
+  OnAllConcluded,
+  OnProcessTask,
+  QueueItem,
+  TaskQueueOptions,
 } from './types';
 
 export class TaskQueue {
@@ -15,22 +15,21 @@ export class TaskQueue {
   private delayAfterBatchMs: number | (() => number);
   private schedulerIntervalMs: number;
 
-  private queue: IQueueItem[] = [];
+  private queue: QueueItem[] = [];
   private running = false;
 
-  private storageDir: string;
   private tasksFile: Bun.BunFile;
-  private logFile: string;
   private dayjs: () => Dayjs;
+  private logger: Logger;
 
-  public onProcessTask: IOnProcessTask;
-  public onAllConcluded: IOnAllConcluded;
+  public onProcessTask: OnProcessTask;
+  public onAllConcluded: OnAllConcluded;
   public generateTaskIdFn?: (data: unknown) => string;
 
   private writeQueue = Promise.resolve();
 
   constructor({
-    storageDir,
+    tasksFilePath,
     onProcessTask,
     onAllConcluded = () => null,
     concurrency = 2,
@@ -38,10 +37,27 @@ export class TaskQueue {
     schedulerIntervalMs = 1000, // 1 seconds
     generateTaskIdFn,
     dayjs,
-  }: ITaskQueueOptions) {
-    this.storageDir = storageDir;
-    this.tasksFile = Bun.file(path.join(storageDir, 'tasks.json'));
-    this.logFile = path.join(storageDir, 'log.txt');
+    logger = console,
+  }: TaskQueueOptions) {
+    const pathExt = path.extname(tasksFilePath);
+
+    if (logger === false) {
+      logger = {
+        info: () => null,
+        error: () => null,
+        warn: () => null,
+      };
+    }
+    this.logger = logger;
+
+    if (pathExt !== '.json') {
+      logger.warn(
+        `Invalid file extension for tasks file: ${pathExt}. Expected '.json'.`,
+      );
+      throw new Error('INVALID_TASKS_FILE_EXTENSION');
+    }
+
+    this.tasksFile = Bun.file(tasksFilePath);
 
     this.onProcessTask = onProcessTask;
     this.onAllConcluded = onAllConcluded;
@@ -61,17 +77,14 @@ export class TaskQueue {
   }
 
   /**
-   * Initializes the storage directory and required files (tasks.json, log.txt) if they do not exist.
+   * Initializes the storage directory and required 'tasks.json' file if they do not exist.
    * @private
    */
   private async initStorage(): Promise<void> {
     if (!(await this.tasksFile.exists())) {
-      await mkdir(this.storageDir, { recursive: true });
-      await Bun.write(this.tasksFile, '[]');
-    }
-
-    if (!(await exists(this.logFile))) {
-      await Bun.write(this.logFile, '');
+      await Bun.write(this.tasksFile, '[]', {
+        createPath: true,
+      });
     }
   }
 
@@ -94,7 +107,7 @@ export class TaskQueue {
       }
 
       if (normalizedCount > 0) {
-        await this.log(
+        this.logger.info(
           `Normalized ${normalizedCount} 'running' tasks to 'pending'.`,
         );
         await this.saveTasks();
@@ -111,26 +124,16 @@ export class TaskQueue {
   }
 
   /**
-   * Logs a message to the log file with a timestamp and outputs to the console.
-   * @param {string} message - The message to log.
-   */
-  private async log(message: string): Promise<void> {
-    const line = `[${this.dayjs().format('DD/MM HH:mm:ss')}] [Queue] ${message}\n`;
-    console.log(line.trim());
-    await appendFile(this.logFile, line, 'utf8');
-  }
-
-  /**
    * Saves the current queue state to the tasks.json file.
    */
   async saveTasks(): Promise<void> {
     this.writeQueue = this.writeQueue.then(async () => {
       try {
-        this.log('Saving tasks to storage...');
+        this.logger.info('Saving tasks to storage...');
         const data = JSON.stringify(this.queue, null, 2);
         await this.tasksFile.write(data);
       } catch (error) {
-        this.log(
+        this.logger.error(
           `Error on tasks save: ${error instanceof Error ? error.message : error}`,
         );
       }
@@ -183,7 +186,7 @@ export class TaskQueue {
         finishedAt: null,
       });
 
-      this.log(`Task added: ${id}`);
+      this.logger.info(`Task added: ${id}`);
     }
 
     this.saveTasks();
@@ -207,7 +210,7 @@ export class TaskQueue {
       count++;
     }
 
-    this.log(`Restarted ${count} error tasks.`);
+    this.logger.info(`Restarted ${count} error tasks.`);
     this.saveTasks();
   }
 
@@ -236,7 +239,7 @@ export class TaskQueue {
       return false;
     }
 
-    this.log('All tasks concluded.');
+    this.logger.info('All tasks concluded.');
     this.onAllConcluded?.();
     return true;
   }
@@ -262,7 +265,7 @@ export class TaskQueue {
    */
   async runSchedulerOnce(): Promise<boolean> {
     if (!this.queue.length) {
-      this.log('No tasks in the queue.');
+      this.logger.warn('No tasks in the queue.');
       return false;
     }
 
@@ -285,7 +288,7 @@ export class TaskQueue {
       tasksToRun.map(async (task) => {
         try {
           task.status = 'running';
-          this.log(`[${task.id}] Task started.`);
+          this.logger.info(`[${task.id}] Task started.`);
 
           if (!this.onProcessTask) {
             throw new Error('No onProcessTask handler defined.');
@@ -296,10 +299,12 @@ export class TaskQueue {
           task.status = success ? 'completed' : 'error';
           task.finishedAt = this.dayjs();
 
-          this.log(`[${task.id}] Task completed - Status: ${task.status}`);
+          this.logger.info(
+            `[${task.id}] Task completed - Status: ${task.status}`,
+          );
         } catch (err) {
           task.status = 'error';
-          this.log(
+          this.logger.error(
             `[${task.id}] Task Error - ${
               err instanceof Error ? err.message : err
             }`,
@@ -317,7 +322,7 @@ export class TaskQueue {
    */
   startScheduler(): void {
     this.running = true;
-    this.log('Scheduler started.');
+    this.logger.info('Scheduler started.');
 
     const loop = async () => {
       while (this.running) {
@@ -332,7 +337,7 @@ export class TaskQueue {
             continue;
           }
 
-          this.log(`Waiting ${delay / 1000}s before next batch run...`);
+          this.logger.info(`Waiting ${delay / 1000}s before next batch run...`);
           await new Promise((r) => setTimeout(r, delay));
         }
       }
@@ -343,7 +348,7 @@ export class TaskQueue {
 
   stopScheduler(): void {
     this.running = false;
-    this.log('Scheduler stopped.');
+    this.logger.info('Scheduler stopped.');
   }
 
   getQueue() {

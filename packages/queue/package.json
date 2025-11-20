@@ -16,7 +16,7 @@
     "nanoid": "^5.1.5"
   },
   "devDependencies": {
-    "tsup": "^8.5.0",
+    "tsup": "^8.5.1",
     "@types/bun": "catalog:"
   },
   "peerDependencies": {
