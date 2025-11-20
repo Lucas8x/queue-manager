@@ -6,6 +6,7 @@
     "prebuild": "bun run --filter '@queue/lib' build",
     "build": "bun run --filter '!@queue/lib' build",
     "dev:back": "bun run ./packages/backend/src/index.ts",
+    "dev:back:seed": "bun run ./packages/backend/src/index.ts --seed",
     "dev:front": "bun run --filter '@queue/dashboard' dev",
     "build:front": "bun run --filter '@queue/dashboard' build",
     "build:back": "bun run --filter '@queue/backend' build"
@@ -20,16 +21,16 @@
     "url": "https://github.com/Lucas8x/queue-manager/issues"
   },
   "catalog": {
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.19",
     "elysia": "latest",
     "@types/bun": "latest",
     "@types/node": "^24.7.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.5"
+    "@biomejs/biome": "2.3.6"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   },
   "packageManager": "bun@1.2.19",
   "engines": {

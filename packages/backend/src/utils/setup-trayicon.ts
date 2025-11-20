@@ -1,7 +1,7 @@
 import SysTray from 'systray';
-import pkg from '../package.json';
+import pkg from '../../package.json';
 
-import icon from './icon';
+import icon from '../assets/icon';
 
 type TrayIconOptions = {
   onOpenDashboard: () => void;

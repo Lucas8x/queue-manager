@@ -3,17 +3,24 @@ import path from 'node:path';
 import { TaskQueue } from '@queue/lib';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { queueLogger } from './utils/logger';
 
 dayjs.extend(utc);
 
-const queueStorage = path.join(import.meta.dir, '..', 'output', 'queue');
+const tasksFile = path.join(
+  import.meta.dir,
+  '..',
+  'output',
+  'queue',
+  'tasks.json',
+);
 
 let queueInstance: TaskQueue | null = null;
 
 function getQueue(): TaskQueue {
   if (!queueInstance) {
     queueInstance = new TaskQueue({
-      storageDir: queueStorage,
+      tasksFilePath: tasksFile,
       delayAfterBatchMs: () => randomInt(30, 60 + 1) * 1000, // 30 ~ 60 seconds
       schedulerIntervalMs: 10 * 1000, // 10 seconds
       onProcessTask: async (task) => {
@@ -27,10 +34,11 @@ function getQueue(): TaskQueue {
         return randomSuccess;
       },
       onAllConcluded: () => {
-        console.log('[🦊] [Queue] All done, exiting gracefully...');
+        queueLogger.info('All done, exiting gracefully...');
         process.exit(0);
       },
       dayjs: () => dayjs().utc(true),
+      logger: queueLogger,
     });
   }
 

@@ -4,9 +4,9 @@ import { openapi } from '@elysiajs/openapi';
 import { staticPlugin } from '@elysiajs/static';
 import { Elysia, file } from 'elysia';
 import pkg from '../package.json';
-import { IS_PROD, PORT } from './env';
 import { queue } from './queue';
-import { type SSEClient, SSEManager } from './sse-manager';
+import { IS_PROD, PORT } from './utils/env';
+import { type SSEClient, SSEManager } from './utils/sse-manager';
 
 const frontendDir = path.join(import.meta.dir, '..', '..', 'dashboard', 'dist');
 const indexHtml = path.join(frontendDir, 'index.html');
