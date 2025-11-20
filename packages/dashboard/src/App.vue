@@ -76,7 +76,7 @@ const groupedItems = computed(() => {
               :is="config.icon"
               class="h-12 w-12 mx-auto mb-2 opacity-50"
             />
-            <p>No {{ status }}tasks</p>
+            <p>No {{ status }} tasks</p>
           </div>
         </QueueGroup>
       </div>

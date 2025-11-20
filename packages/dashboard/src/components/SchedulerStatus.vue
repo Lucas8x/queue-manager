@@ -16,14 +16,16 @@ const schedulerStatus = useSchedulerStatus();
         class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
         :class="{
           'bg-green-400': schedulerStatus === 'running',
-          'bg-red-400': schedulerStatus !== 'running',
+          'bg-yellow-400': schedulerStatus === 'paused',
+          'bg-red-400': schedulerStatus === 'offline',
         }"
       />
       <span
         class="relative inline-flex size-3 rounded-full"
         :class="{
           'bg-green-400': schedulerStatus === 'running',
-          'bg-red-400': schedulerStatus !== 'running',
+          'bg-yellow-400': schedulerStatus === 'paused',
+          'bg-red-400': schedulerStatus === 'offline',
         }"
       />
     </span>
