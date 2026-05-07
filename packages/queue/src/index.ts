@@ -17,6 +17,7 @@ export class TaskQueue {
 
   private queue: QueueItem[] = [];
   private running = false;
+  private nextBatchAt: Dayjs | null = null;
 
   private tasksFile: Bun.BunFile;
   private dayjs: () => Dayjs;
@@ -214,6 +215,27 @@ export class TaskQueue {
     this.saveTasks();
   }
 
+  restartTasksById(ids: string[]): void {
+    if (!ids || ids.length === 0) {
+      return;
+    }
+
+    let count = 0;
+
+    for (const task of this.queue) {
+      if (!ids.includes(task.id)) {
+        continue;
+      }
+      task.status = 'pending';
+      task.scheduledAt = this.dayjs();
+      task.finishedAt = null;
+      count++;
+    }
+
+    this.logger.info(`Restarted ${count} tasks.`);
+    this.saveTasks();
+  }
+
   /**
    * Gets the delay interval after a batch, either as a static value or by invoking a function.
    * @private
@@ -264,6 +286,11 @@ export class TaskQueue {
    * @returns {Promise<boolean>} True if any batch was processed, false otherwise.
    */
   async runSchedulerOnce(): Promise<boolean> {
+    const now = this.dayjs();
+
+    // Default next batch start is after the scheduler interval from now.
+    this.nextBatchAt = now.add(this.schedulerIntervalMs, 'millisecond');
+
     if (!this.queue.length) {
       this.logger.warn('No tasks in the queue.');
       return false;
@@ -276,7 +303,6 @@ export class TaskQueue {
     const availableSlots = this.getAvailableSlots();
 
     if (availableSlots <= 0) {
-      //this.log('No tasks can be run now due to concurrency limit.');
       return false;
     }
 
@@ -314,6 +340,18 @@ export class TaskQueue {
     );
 
     await this.saveTasks();
+
+    const processedBatch = tasksToRun.length > 0;
+    let next = this.dayjs().add(this.schedulerIntervalMs, 'millisecond');
+
+    if (processedBatch) {
+      const delay = this.getTaskInterval();
+      if (delay && delay > 0) {
+        next = next.add(delay, 'millisecond');
+      }
+    }
+    this.nextBatchAt = next;
+
     return true;
   }
 
@@ -322,6 +360,7 @@ export class TaskQueue {
    */
   startScheduler(): void {
     this.running = true;
+    this.nextBatchAt = this.dayjs();
     this.logger.info('Scheduler started.');
 
     const loop = async () => {
@@ -348,11 +387,20 @@ export class TaskQueue {
 
   stopScheduler(): void {
     this.running = false;
+    this.nextBatchAt = null;
     this.logger.info('Scheduler stopped.');
   }
 
   getQueue() {
     return this.queue;
+  }
+
+  /**
+   * Returns a Dayjs instance for when the next batch is scheduled to start,
+   * or `null` if there is no scheduled batch.
+   */
+  getNextBatchTime(): Dayjs | null {
+    return this.nextBatchAt;
   }
 
   /**
