@@ -50,6 +50,10 @@ const shortcuts = {
       queue.restartErrorTasks();
     },
   },
+  h: {
+    description: 'show this help menu',
+    action: showMenu,
+  },
   q: {
     description: 'quit',
     action: () => {
@@ -57,6 +61,14 @@ const shortcuts = {
     },
   },
 } as const;
+
+function showMenu() {
+  for (const [key, value] of Object.entries(shortcuts)) {
+    console.log(
+      pc.dim('  press ') + pc.bold(key) + pc.dim(` to ${value.description}`),
+    );
+  }
+}
 
 /* if (IS_PROD) {
   setupTrayIcon({
@@ -89,11 +101,7 @@ process.stdin.on('keypress', (_, key) => {
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('beforeExit', () => handleShutdown('beforeExit'));
 
-for (const [key, value] of Object.entries(shortcuts)) {
-  console.log(
-    pc.dim('  press ') + pc.bold(key) + pc.dim(` to ${value.description}`),
-  );
-}
+showMenu();
 
 export type App = typeof app;
 
@@ -103,9 +111,7 @@ const {
   values: { seed },
 } = parseArgs({
   args: Bun.argv,
-  options: {
-    seed: { type: 'boolean' },
-  },
+  options: { seed: { type: 'boolean' } },
   allowPositionals: true,
 });
 
@@ -115,8 +121,11 @@ if (seed) {
   } else {
     console.info('[DEBUG] Seeding with fake tasks...');
     queue.addTask(
-      Array.from({ length: 10 }).map((_, i) => ({
+      Array.from({ length: 500 }).map((_, i) => ({
         id: `fake-task-${i + 1}`,
+        category: ['fetch', 'download', 'email', 'resize'][
+          Math.floor(Math.random() * 4)
+        ],
       })),
     );
   }

@@ -7,7 +7,7 @@ import { queueLogger } from './utils/logger';
 
 dayjs.extend(utc);
 
-const tasksFile = path.join(
+const tasksFilePath = path.join(
   import.meta.dir,
   '..',
   'output',
@@ -20,7 +20,8 @@ let queueInstance: TaskQueue | null = null;
 function getQueue(): TaskQueue {
   if (!queueInstance) {
     queueInstance = new TaskQueue({
-      tasksFilePath: tasksFile,
+      concurrency: 4,
+      tasksFilePath,
       delayAfterBatchMs: () => randomInt(30, 60 + 1) * 1000, // 30 ~ 60 seconds
       schedulerIntervalMs: 10 * 1000, // 10 seconds
       onProcessTask: async (task) => {
@@ -37,7 +38,7 @@ function getQueue(): TaskQueue {
         queueLogger.info('All done, exiting gracefully...');
         process.exit(0);
       },
-      dayjs: () => dayjs().utc(true),
+      dayjs: () => dayjs().utc(),
       logger: queueLogger,
     });
   }

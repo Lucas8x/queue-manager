@@ -2,10 +2,11 @@ import path from 'node:path';
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { staticPlugin } from '@elysiajs/static';
-import { Elysia, file } from 'elysia';
+import { Elysia, file, t } from 'elysia';
 import pkg from '../package.json';
 import { queue } from './queue';
 import { IS_PROD, PORT } from './utils/env';
+import { serverLogger } from './utils/logger';
 import { type SSEClient, SSEManager } from './utils/sse-manager';
 
 const frontendDir = path.join(import.meta.dir, '..', '..', 'dashboard', 'dist');
@@ -62,24 +63,79 @@ const app = new Elysia()
       },
     });
   })
+  .patch(
+    '/scheduler',
+    ({ body, status }) => {
+      if (body.state === 'paused') {
+        queue.stopScheduler();
+      } else if (body.state === 'running') {
+        queue.startScheduler();
+      }
+      return status(204);
+    },
+    {
+      body: t.Object({
+        state: t.Union([t.Literal('paused'), t.Literal('running')]),
+      }),
+    },
+  )
   .group('/tasks', (app) =>
     app
       .post('/restart-failed', ({ status }) => {
+        serverLogger.info('Received restart failed tasks.');
         queue.restartErrorTasks();
-        return status(200);
+        return status(204);
       })
-      .post('/pause', ({ status }) => {
-        queue.stopScheduler();
-        return status(200);
-      })
-      .post('/resume', ({ status }) => {
-        queue.startScheduler();
-        return status(200);
-      }),
+      .post(
+        'restart-by-category',
+        ({ body, status }) => {
+          serverLogger.info(
+            `Received command: restart failed ${body.category} tasks.`,
+          );
+
+          const ids = queue
+            .getQueue()
+            .map((task) => {
+              const data = task.data as { category?: string } | undefined;
+              if (data?.category === body.category && task.status === 'error') {
+                return task.id;
+              }
+              return null;
+            })
+            .filter((i) => typeof i === 'string');
+
+          if (ids.length === 0) {
+            return status(400);
+          }
+
+          queue.restartTasksById(ids);
+          return status(204);
+        },
+        {
+          body: t.Object({
+            category: t.String(),
+          }),
+        },
+      )
+      .post(
+        '/restart-by-id',
+        ({ body, status }) => {
+          queue.restartTasksById(body.ids);
+          return status(204);
+        },
+        {
+          body: t.Object({
+            ids: t.Array(t.String()),
+          }),
+        },
+      ),
   );
 
 setInterval(() => {
-  sseManager.broadcast(queue.getQueue());
+  sseManager.broadcast({
+    nextRun: queue.getNextBatchTime(),
+    queue: queue.getQueue(),
+  });
 }, 1000);
 
 app.listen({
