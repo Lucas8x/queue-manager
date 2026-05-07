@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import 'vue-sonner/style.css';
 import { RecycleScroller } from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
@@ -7,39 +6,12 @@ import MainHeader from '@/components/MainHeader.vue';
 import QueueGroup from '@/components/QueueGroup.vue';
 import QueueItem from '@/components/QueueItem.vue';
 import { Toaster } from '@/components/ui/sonner';
-import { useListenTasks } from '@/composables/useListenTasks';
 import { STATUS_CONFIG } from '@/constants';
-import type { ITask, ITaskStatus } from './@types';
 import { useColumnsSize } from './composables/useColumnsSize';
+import { useTasks } from './composables/useTasks';
 
-const { tasks } = useListenTasks();
+const tasks = useTasks();
 const { columns } = useColumnsSize();
-
-const groupedItems = computed(() => {
-  const group: Record<ITaskStatus, ITask[]> = {
-    running: [],
-    pending: [],
-    completed: [],
-    error: [],
-    unknown: [],
-  };
-
-  if (!tasks.value.length) {
-    return group;
-  }
-
-  tasks.value.forEach((item) => {
-    if (!item.status || !STATUS_CONFIG[item.status]) {
-      item.status = 'unknown';
-    }
-    if (!group[item.status]) {
-      group[item.status] = [];
-    }
-    group[item.status].push(item);
-  });
-
-  return group;
-});
 </script>
 
 <template>
@@ -54,17 +26,17 @@ const groupedItems = computed(() => {
           :icon="config.icon"
           :icon-color="config.iconColor"
           :label="config.label"
-          :length="groupedItems[status].length"
-          :spin-animation="status === 'running'"
+          :length="tasks.groupedItems[status].length"
+          :spin-animation="status === 'running' && tasks.groupedItems[status].length > 0"
         >
-          <div v-if="groupedItems[status].length">
+          <div v-if="tasks.groupedItems[status].length">
             <RecycleScroller
-              :items="groupedItems[status]"
+              :items="tasks.groupedItems[status]"
               key-field="id"
               :grid-items="columns"
               :item-size="106 + 16"
               :item-secondary-size="306"
-              :page-mode="true"
+              page-mode
               v-slot="{ item }"
             >
               <QueueItem :key="item.id" :task="item" />

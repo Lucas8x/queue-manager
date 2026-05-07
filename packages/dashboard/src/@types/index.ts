@@ -8,7 +8,9 @@ export type ITaskStatus =
 export type ITask = {
   id: string;
   title: string;
-  data: unknown;
+  data: {
+    category: string;
+  };
   status: ITaskStatus;
   scheduledAt: string;
   finishedAt: string | null;

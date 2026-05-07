@@ -4,12 +4,24 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useManager } from '@/composables/useManager';
+import {
+  pauseScheduler,
+  restartFailedTasks,
+  restartTaskByCategory,
+  resumeScheduler,
+} from '@/composables/useManager';
+import { useTasks } from '@/composables/useTasks';
 
-const { restart, pause, resume } = useManager();
+const tasks = useTasks();
 </script>
 
 <template>
@@ -22,15 +34,42 @@ const { restart, pause, resume } = useManager();
     </DropdownMenuTrigger>
 
     <DropdownMenuContent>
-      <DropdownMenuItem class="cursor-pointer" @click="restart">
-        <RefreshCcw class="h-5 w-5" /> Restart failed tasks
+      <DropdownMenuItem class="cursor-pointer" @click="restartFailedTasks">
+        <RefreshCcw class="size-4" /> Restart failed tasks
       </DropdownMenuItem>
 
-      <DropdownMenuItem class="cursor-pointer" @click="pause">
+      <DropdownMenuGroup>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger
+            :class="{
+              'cursor-not-allowed opacity-50': tasks.uniqueTypes.length === 0
+            }"
+            :disabled=" tasks.uniqueTypes.length === 0"
+          >
+            <RefreshCcw class="size-4 mr-1 text-muted-foreground" />
+            Restart by type
+          </DropdownMenuSubTrigger>
+
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem
+                class="cursor-pointer capitalize"
+                v-for="value in tasks.uniqueTypes"
+                :key="value"
+                @click="() => restartTaskByCategory(value)"
+              >
+                {{ value }}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+      </DropdownMenuGroup>
+
+      <DropdownMenuItem class="cursor-pointer" @click="pauseScheduler">
         <Pause class="h-5 w-5" /> Pause scheduler
       </DropdownMenuItem>
 
-      <DropdownMenuItem class="cursor-pointer" @click="resume">
+      <DropdownMenuItem class="cursor-pointer" @click="resumeScheduler">
         <Play class="h-5 w-5" /> Resume scheduler
       </DropdownMenuItem>
     </DropdownMenuContent>
