@@ -4,9 +4,7 @@ import open from 'open';
 import pc from 'picocolors';
 import { queue } from './queue';
 import { app } from './server';
-import { IS_PROD } from './utils/env';
 import { serverLogger } from './utils/logger';
-import { setupTrayIcon } from './utils/setup-trayicon';
 
 const dashboardUrl = `http://${app.server?.hostname}:${app.server?.port}`;
 
@@ -65,7 +63,7 @@ const shortcuts = {
 function showMenu() {
   for (const [key, value] of Object.entries(shortcuts)) {
     console.log(
-      pc.dim('  press ') + pc.bold(key) + pc.dim(` to ${value.description}`),
+      pc.dim('  press ') + pc.bold(key) + pc.dim(` to ${value.description}`)
     );
   }
 }
@@ -87,7 +85,9 @@ if (process.stdin.isTTY) {
 }
 
 process.stdin.on('keypress', (_, key) => {
-  if (!key || !('name' in key)) return;
+  if (!(key && 'name' in key)) {
+    return;
+  }
 
   if (shortcuts[key.name as keyof typeof shortcuts]) {
     shortcuts[key.name as keyof typeof shortcuts].action();
@@ -126,7 +126,7 @@ if (seed) {
         category: ['fetch', 'download', 'email', 'resize'][
           Math.floor(Math.random() * 4)
         ],
-      })),
+      }))
     );
   }
 }

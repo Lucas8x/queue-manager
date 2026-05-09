@@ -18,7 +18,7 @@ export function useTasks() {
     const uniqueTypes: string[] = [];
 
     for (const task of tasks.value) {
-      if (!task.status || !STATUS_CONFIG[task.status]) {
+      if (!(task.status && STATUS_CONFIG[task.status])) {
         task.status = 'unknown';
       }
       if (!groupedItems[task.status]) {

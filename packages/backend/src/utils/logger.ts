@@ -32,7 +32,7 @@ const logger = pino(
     level: 'info',
     base: null,
   },
-  pino.multistream([{ stream: consoleStream }, { stream: rollTransport }]),
+  pino.multistream([{ stream: consoleStream }, { stream: rollTransport }])
 );
 
 export function createLogger(module: string) {

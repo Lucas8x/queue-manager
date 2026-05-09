@@ -44,9 +44,7 @@ function handleCopy() {
               </CardTitle>
             </TooltipTrigger>
 
-            <TooltipContent>
-              <p>Click to copy</p>
-            </TooltipContent>
+            <TooltipContent> <p>Click to copy</p> </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -64,14 +62,14 @@ function handleCopy() {
     <CardContent>
       <div class="flex items-center gap-1 text-sm text-muted-foreground">
         <Calendar class="h-3 w-3" />
-        <span>{{
-          dayjs.utc(props.task.finishedAt || props.task.scheduledAt).local().format('DD/MM')
-        }}</span>
+        <span
+          >{{ dayjs.utc(props.task.finishedAt || props.task.scheduledAt).local().format('DD/MM') }}</span
+        >
 
         <AlarmClock class="ml-1 h-3 w-3" />
-        <span>{{
-          dayjs.utc(props.task.finishedAt || props.task.scheduledAt).local().format('HH:mm')
-        }}</span>
+        <span
+          >{{ dayjs.utc(props.task.finishedAt || props.task.scheduledAt).local().format('HH:mm') }}</span
+        >
       </div>
     </CardContent>
   </Card>

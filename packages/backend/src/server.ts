@@ -5,7 +5,7 @@ import { staticPlugin } from '@elysiajs/static';
 import { Elysia, file, t } from 'elysia';
 import pkg from '../package.json';
 import { queue } from './queue';
-import { IS_PROD, PORT } from './utils/env';
+import { PORT } from './utils/env';
 import { serverLogger } from './utils/logger';
 import { type SSEClient, SSEManager } from './utils/sse-manager';
 
@@ -23,18 +23,18 @@ const app = new Elysia()
           version: pkg.version,
         },
       },
-    }),
+    })
   )
   .use(
     staticPlugin({
       assets: frontendDir,
       prefix: '/',
-    }),
+    })
   )
   .use(
     cors({
       origin: '*',
-    }),
+    })
   )
   .get('/', () => file(indexHtml))
   .get('/health', () => queue.getIsRunning())
@@ -77,7 +77,7 @@ const app = new Elysia()
       body: t.Object({
         state: t.Union([t.Literal('paused'), t.Literal('running')]),
       }),
-    },
+    }
   )
   .group('/tasks', (app) =>
     app
@@ -90,7 +90,7 @@ const app = new Elysia()
         'restart-by-category',
         ({ body, status }) => {
           serverLogger.info(
-            `Received command: restart failed ${body.category} tasks.`,
+            `Received command: restart failed ${body.category} tasks.`
           );
 
           const ids = queue
@@ -115,7 +115,7 @@ const app = new Elysia()
           body: t.Object({
             category: t.String(),
           }),
-        },
+        }
       )
       .post(
         '/restart-by-id',
@@ -127,8 +127,8 @@ const app = new Elysia()
           body: t.Object({
             ids: t.Array(t.String()),
           }),
-        },
-      ),
+        }
+      )
   );
 
 setInterval(() => {

@@ -11,21 +11,21 @@ import type {
 } from './types';
 
 export class TaskQueue {
-  private concurrency: number;
-  private delayAfterBatchMs: number | (() => number);
-  private schedulerIntervalMs: number;
+  private readonly concurrency: number;
+  private readonly delayAfterBatchMs: number | (() => number);
+  private readonly schedulerIntervalMs: number;
 
   private queue: QueueItem[] = [];
   private running = false;
   private nextBatchAt: Dayjs | null = null;
 
-  private tasksFile: Bun.BunFile;
-  private dayjs: () => Dayjs;
-  private logger: Logger;
+  private readonly tasksFile: Bun.BunFile;
+  private readonly dayjs: () => Dayjs;
+  private readonly logger: Logger;
 
-  public onProcessTask: OnProcessTask;
-  public onAllConcluded: OnAllConcluded;
-  public generateTaskIdFn?: (data: unknown) => string;
+  onProcessTask: OnProcessTask;
+  onAllConcluded: OnAllConcluded;
+  generateTaskIdFn?: (data: unknown) => string;
 
   private writeQueue = Promise.resolve();
 
@@ -53,7 +53,7 @@ export class TaskQueue {
 
     if (pathExt !== '.json') {
       logger.warn(
-        `Invalid file extension for tasks file: ${pathExt}. Expected '.json'.`,
+        `Invalid file extension for tasks file: ${pathExt}. Expected '.json'.`
       );
       throw new Error('INVALID_TASKS_FILE_EXTENSION');
     }
@@ -69,11 +69,11 @@ export class TaskQueue {
 
     this.generateTaskIdFn = generateTaskIdFn;
 
-    if (!dayjs) {
+    if (dayjs) {
+      this.dayjs = dayjs;
+    } else {
       dayjsBase.extend(utc);
       this.dayjs = dayjsBase.utc;
-    } else {
-      this.dayjs = dayjs;
     }
   }
 
@@ -109,7 +109,7 @@ export class TaskQueue {
 
       if (normalizedCount > 0) {
         this.logger.info(
-          `Normalized ${normalizedCount} 'running' tasks to 'pending'.`,
+          `Normalized ${normalizedCount} 'running' tasks to 'pending'.`
         );
         await this.saveTasks();
       }
@@ -127,7 +127,7 @@ export class TaskQueue {
   /**
    * Saves the current queue state to the tasks.json file.
    */
-  async saveTasks(): Promise<void> {
+  saveTasks(): Promise<void> {
     this.writeQueue = this.writeQueue.then(async () => {
       try {
         this.logger.info('Saving tasks to storage...');
@@ -135,7 +135,7 @@ export class TaskQueue {
         await this.tasksFile.write(data);
       } catch (error) {
         this.logger.error(
-          `Error on tasks save: ${error instanceof Error ? error.message : error}`,
+          `Error on tasks save: ${error instanceof Error ? error.message : error}`
         );
       }
     });
@@ -254,7 +254,7 @@ export class TaskQueue {
    */
   private hasAllProcessed(): boolean {
     const allDone = this.queue.every((t) =>
-      ['completed', 'error'].includes(t.status),
+      ['completed', 'error'].includes(t.status)
     );
 
     if (!allDone) {
@@ -272,7 +272,7 @@ export class TaskQueue {
    */
   private getAvailableSlots(): number {
     const runningCount = this.queue.filter(
-      (t) => t.status === 'running',
+      (t) => t.status === 'running'
     ).length;
 
     const availableSlots = this.concurrency - runningCount;
@@ -326,17 +326,17 @@ export class TaskQueue {
           task.finishedAt = this.dayjs();
 
           this.logger.info(
-            `[${task.id}] Task completed - Status: ${task.status}`,
+            `[${task.id}] Task completed - Status: ${task.status}`
           );
         } catch (err) {
           task.status = 'error';
           this.logger.error(
             `[${task.id}] Task Error - ${
               err instanceof Error ? err.message : err
-            }`,
+            }`
           );
         }
-      }),
+      })
     );
 
     await this.saveTasks();
@@ -416,4 +416,4 @@ export class TaskQueue {
   }
 }
 
-export * from './types';
+export type * from './types';

@@ -30,9 +30,7 @@ const isOpen = ref(true);
 
       <h2 class="text-xl font-semibold capitalize">{{ label }}</h2>
 
-      <Badge variant="secondary" class="ml-auto">
-        {{ props.length }}
-      </Badge>
+      <Badge variant="secondary" class="ml-auto"> {{ props.length }} </Badge>
 
       <CollapsibleTrigger class="ml-1 hover:cursor-pointer" as-child>
         <ChevronsUpDown v-if="isOpen" />
@@ -40,8 +38,6 @@ const isOpen = ref(true);
       </CollapsibleTrigger>
     </div>
 
-    <CollapsibleContent>
-      <slot></slot>
-    </CollapsibleContent>
+    <CollapsibleContent> <slot></slot> </CollapsibleContent>
   </Collapsible>
 </template>

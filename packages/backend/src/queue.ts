@@ -12,7 +12,7 @@ const tasksFilePath = path.join(
   '..',
   'output',
   'queue',
-  'tasks.json',
+  'tasks.json'
 );
 
 let queueInstance: TaskQueue | null = null;
@@ -28,7 +28,7 @@ function getQueue(): TaskQueue {
         // Implement your task processing logic here
 
         // fake processing delay 5 ~ 15 seconds
-        await new Promise((r) => setTimeout(r, randomInt(5000, 15000 + 1)));
+        await new Promise((r) => setTimeout(r, randomInt(5000, 15_000 + 1)));
 
         const randomSuccess = Math.random() < 0.4;
         // Return true if successful, false otherwise

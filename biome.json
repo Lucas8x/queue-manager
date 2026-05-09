@@ -1,51 +1,76 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": false },
-  "files": { "ignoreUnknown": false },
-  "formatter": {
+  "extends": ["ultracite/biome/core", "ultracite/biome/vue"],
+  "vcs": {
     "enabled": true,
-    "formatWithErrors": false,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineEnding": "lf",
-    "lineWidth": 80,
-    "attributePosition": "auto",
-    "bracketSameLine": false,
-    "bracketSpacing": true,
-    "expand": "auto",
-    "useEditorconfig": true
+    "clientKind": "git",
+    "useIgnoreFile": false
   },
-  "linter": { "enabled": true, "rules": { "recommended": true } },
-  "javascript": {
-    "formatter": {
-      "jsxQuoteStyle": "single",
-      "quoteProperties": "asNeeded",
-      "trailingCommas": "all",
-      "semicolons": "always",
-      "arrowParentheses": "always",
-      "bracketSameLine": false,
-      "quoteStyle": "single",
-      "attributePosition": "auto",
-      "bracketSpacing": true
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "!packages/dashboard/src/components/ui",
+      "!packages/dashboard/src/index.d.ts",
+      "!packages/backend/output"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useDefaultSwitchClause": "off",
+        "useConsistentTypeDefinitions": {
+          "level": "warn",
+          "options": {
+            "style": "type"
+          }
+        }
+      }
     }
   },
-  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "javascript": {
+    "globals": ["Bun"],
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "single"
+    }
+  },
+  "html": {
+    "formatter": {
+      "selfCloseVoidElements": "always",
+      "indentScriptAndStyle": false
+    }
+  },
+  "css": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
   "assist": {
     "enabled": true,
-    "actions": { "source": { "organizeImports": "on" } }
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   },
   "overrides": [
     {
       "includes": ["**/*.vue"],
       "linter": {
         "rules": {
-          "style": {
-            "useConst": "off",
-            "useImportType": "off"
-          },
           "correctness": {
-            "noUnusedVariables": "off",
-            "noUnusedImports": "off"
+            "noUndeclaredVariables": "off"
+          },
+          "style": {
+            "useFilenamingConvention": {
+              "level": "warn",
+              "options": {
+                "filenameCases": ["PascalCase", "kebab-case"]
+              }
+            }
           }
         }
       }

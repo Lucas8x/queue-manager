@@ -18,6 +18,7 @@ export function useSchedulerStatus() {
       status.value = data === true ? 'running' : 'paused';
     } catch (error) {
       status.value = 'offline';
+      console.error('[useSchedulerStatus]', error);
     }
   }
 

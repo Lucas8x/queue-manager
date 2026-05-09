@@ -4,7 +4,7 @@ export type SSEClient = {
 };
 
 export class SSEManager {
-  private clients: SSEClient[] = [];
+  private readonly clients: SSEClient[] = [];
 
   addClient(client: SSEClient) {
     this.clients.push(client);
@@ -12,13 +12,15 @@ export class SSEManager {
 
   removeClient(client: SSEClient) {
     const idx = this.clients.indexOf(client);
-    if (idx !== -1) this.clients.splice(idx, 1);
+    if (idx !== -1) {
+      this.clients.splice(idx, 1);
+    }
   }
 
   broadcast(data: unknown) {
     const payload = `data: ${JSON.stringify(data)}\n\n`;
-    this.clients.forEach((client) => {
+    for (const client of this.clients) {
       client.write(payload);
-    });
+    }
   }
 }

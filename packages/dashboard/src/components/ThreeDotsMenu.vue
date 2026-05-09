@@ -35,7 +35,8 @@ const tasks = useTasks();
 
     <DropdownMenuContent>
       <DropdownMenuItem class="cursor-pointer" @click="restartFailedTasks">
-        <RefreshCcw class="size-4" /> Restart failed tasks
+        <RefreshCcw class="size-4" />
+        Restart failed tasks
       </DropdownMenuItem>
 
       <DropdownMenuGroup>
@@ -66,11 +67,13 @@ const tasks = useTasks();
       </DropdownMenuGroup>
 
       <DropdownMenuItem class="cursor-pointer" @click="pauseScheduler">
-        <Pause class="h-5 w-5" /> Pause scheduler
+        <Pause class="h-5 w-5" />
+        Pause scheduler
       </DropdownMenuItem>
 
       <DropdownMenuItem class="cursor-pointer" @click="resumeScheduler">
-        <Play class="h-5 w-5" /> Resume scheduler
+        <Play class="h-5 w-5" />
+        Resume scheduler
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
