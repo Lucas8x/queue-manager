@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "dayjs": "catalog:",
-    "nanoid": "^5.1.5"
+    "nanoid": "^5.1.11"
   },
   "devDependencies": {
     "tsup": "^8.5.1",
