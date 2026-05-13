@@ -1,52 +1,30 @@
 <script setup lang="ts">
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { AlarmClock, Calendar } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import type { ITask } from '@/@types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { STATUS_CONFIG } from '@/constants';
-
-dayjs.extend(utc);
+import { dayjs } from '@/utils/dayjs';
 
 const props = defineProps<{
   task: ITask;
+  click: () => void;
 }>();
 
 const StatusIcon = STATUS_CONFIG[props.task.status].icon;
-
-function handleCopy() {
-  navigator.clipboard.writeText(props.task.id);
-  toast('Task ID copied to clipboard!');
-}
 </script>
 
 <template>
   <Card
-    class="rounded-lg border bg-card text-card-foreground shadow-2xs hover:shadow-md transition-shadow gap-2 mx-2 "
+    class="rounded-lg border bg-card text-card-foreground shadow-2xs hover:shadow-md transition-shadow gap-2 mx-2 cursor-pointer"
+    @click="click"
   >
     <CardHeader class="flex flex-col px-6">
       <div class="flex items-center justify-between w-full">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger class="max-w-full">
-              <CardTitle
-                class="font-semibold tracking-tight text-lg overflow-hidden whitespace-nowrap text-ellipsis hover:cursor-pointer"
-                @click="handleCopy"
-              >
-                {{ props.task.id }}
-              </CardTitle>
-            </TooltipTrigger>
-
-            <TooltipContent> <p>Click to copy</p> </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <CardTitle
+          class="font-semibold tracking-tight text-lg overflow-hidden whitespace-nowrap text-ellipsis hover:cursor-pointer"
+        >
+          {{ props.task.id }}
+        </CardTitle>
 
         <!-- <component
           :is="StatusIcon"

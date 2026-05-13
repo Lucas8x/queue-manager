@@ -2,16 +2,26 @@
 import 'vue-sonner/style.css';
 import { RecycleScroller } from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
+import { computed, ref } from 'vue';
 import MainHeader from '@/components/MainHeader.vue';
 import QueueGroup from '@/components/QueueGroup.vue';
 import QueueItem from '@/components/QueueItem.vue';
 import { Toaster } from '@/components/ui/sonner';
 import { STATUS_CONFIG } from '@/constants';
+import TaskModal from './components/TaskModal.vue';
 import { useColumnsSize } from './composables/useColumnsSize';
+import { useListenSSE } from './composables/useListenSSE';
 import { useTasks } from './composables/useTasks';
 
 const tasks = useTasks();
+const { tasks: rawTasks } = useListenSSE();
 const { columns } = useColumnsSize();
+
+const modalTaskID = ref('');
+
+const modalData = computed(() =>
+  rawTasks.value.find((task) => task.id === modalTaskID.value)
+);
 </script>
 
 <template>
@@ -26,12 +36,14 @@ const { columns } = useColumnsSize();
           :icon="config.icon"
           :icon-color="config.iconColor"
           :label="config.label"
-          :length="tasks.groupedItems[status].length"
-          :spin-animation="status === 'running' && tasks.groupedItems[status].length > 0"
+          :length="tasks.groupedTasks[status].length"
+          :spin-animation="
+            status === 'running' && tasks.groupedTasks[status].length > 0
+          "
         >
-          <div v-if="tasks.groupedItems[status].length">
+          <div v-if="tasks.groupedTasks[status].length">
             <RecycleScroller
-              :items="tasks.groupedItems[status]"
+              :items="tasks.groupedTasks[status]"
               key-field="id"
               :grid-items="columns"
               :item-size="106 + 16"
@@ -39,7 +51,11 @@ const { columns } = useColumnsSize();
               page-mode
               v-slot="{ item }"
             >
-              <QueueItem :key="item.id" :task="item" />
+              <QueueItem
+                :key="item.id"
+                :task="item"
+                :click="() => (modalTaskID = item.id)"
+              />
             </RecycleScroller>
           </div>
 
@@ -53,5 +69,13 @@ const { columns } = useColumnsSize();
         </QueueGroup>
       </div>
     </div>
+  </div>
+
+  <div class="absolute top-0">
+    <TaskModal
+      :open="!!modalTaskID"
+      :task="modalData"
+      @update:open="() => (modalTaskID = '')"
+    />
   </div>
 </template>

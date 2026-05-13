@@ -35,7 +35,7 @@ export async function restartTaskByCategory(category: string) {
   }
 }
 
-/* export async function restartTasksByIDs(ids: string[]) {
+export async function restartTasksByIDs(ids: string[]) {
   try {
     if (!Array.isArray(ids)) {
       return;
@@ -65,7 +65,7 @@ export async function restartTaskByCategory(category: string) {
     toast.error('Network error. Please verify the server is running.');
     console.error(error);
   }
-} */
+}
 
 export async function pauseScheduler() {
   try {

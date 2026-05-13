@@ -7,7 +7,7 @@ export function useTasks() {
   const { tasks } = useListenSSE();
 
   const data = computed(() => {
-    const groupedItems: Record<ITaskStatus, ITask[]> = {
+    const groupedTasks: Record<ITaskStatus, ITask[]> = {
       running: [],
       pending: [],
       completed: [],
@@ -21,19 +21,19 @@ export function useTasks() {
       if (!(task.status && STATUS_CONFIG[task.status])) {
         task.status = 'unknown';
       }
-      if (!groupedItems[task.status]) {
-        groupedItems[task.status] = [];
+      if (!groupedTasks[task.status]) {
+        groupedTasks[task.status] = [];
       }
-      groupedItems[task.status].push(task);
+      groupedTasks[task.status].push(task);
 
-      //
+      // Task Categorization
       const type = task.data.category;
       if (type && !uniqueTypes.includes(type)) {
         uniqueTypes.push(type);
       }
     }
 
-    return { groupedItems, uniqueTypes };
+    return { groupedTasks, uniqueTypes };
   });
 
   return data;
