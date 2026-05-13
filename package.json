@@ -26,14 +26,14 @@
     "url": "https://github.com/Lucas8x/queue-manager/issues"
   },
   "catalog": {
-    "dayjs": "^1.11.19",
+    "dayjs": "^1.11.20",
     "elysia": "latest",
     "@types/bun": "latest",
     "@types/node": "^24.7.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
-    "ultracite": "7.6.3"
+    "ultracite": "7.7.0"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
